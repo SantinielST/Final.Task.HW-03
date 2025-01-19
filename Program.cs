@@ -31,6 +31,10 @@
         }
     }
 
+    /// <summary>
+    /// Класс корзины заказов
+    /// </summary>
+
     public class Cart
     {
         public int customerID;
@@ -69,8 +73,6 @@
     {
         public Cart customerCart;
         public Order<Delivery>[] myOrders;
-
-
     }
 
     public class Courier : User
