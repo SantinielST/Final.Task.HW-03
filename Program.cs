@@ -4,6 +4,11 @@
     {
         static void Main(string[] args)
         {
+            var memoryIDCustomer = 1;
+            var memoryIDCourier = 1;
+            var memoryIDDriver = 1;
+            
+
             var products = new List<Product>
             {
                 new Fruit(1, "Apple"),
@@ -45,11 +50,6 @@
             this.customerID = customerID;
         }
 
-        public Product[] AddProduct<TProduct>(int customerID) where TProduct : Product
-        {
-            return null;
-        }
-
         public Order<Delivery> CreateOrder<TOrder>() where TOrder : Order<Delivery>
         {
             return new Order<Delivery>();
@@ -67,12 +67,32 @@
         public int phoneNumber;
         public string eMail;
 
+        public virtual Order<Delivery> MoveOrder(Order<Delivery> order)
+        {
+            return default;
+        }
     }
 
     class Customer : User
     {
         public Cart customerCart;
         public Order<Delivery>[] myOrders;
+
+        public void AddOrder(Order<Delivery> order)
+        {
+            var orders = myOrders;
+
+            var result = new Order<Delivery>[orders.Length + 1];
+
+            for (int i = 0; i < result.Length; i++)
+            {
+                if (i < result.Length - 1)
+                    result[i] = orders[i];
+                else
+                    result[i] = order;
+            }
+            myOrders = result;
+        }
     }
 
     public class Courier : User
@@ -85,7 +105,9 @@
         public Order<Delivery>[] orders;
     }
 
-
+    /// <summary>
+    /// Классы доставки
+    /// </summary>
     public abstract class Delivery
     {
         public string Address;
@@ -104,6 +126,7 @@
     public class ShopDelivery : Delivery
     {
         public int driverId;
+        public string companyName;
     }
 
     public class Order<TDelivery> where TDelivery : Delivery
@@ -114,11 +137,12 @@
 
         public string Description;
 
-        public void DisplayAddress()
+        public Product[] AddProduct<TProduct>(int customerID) where TProduct : Product
         {
-            Console.WriteLine(Delivery.Address);
+            return null;
         }
 
+       
         // ... Другие поля
     }
 
