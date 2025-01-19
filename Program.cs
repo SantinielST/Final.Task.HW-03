@@ -7,16 +7,24 @@
             var memoryIDCustomer = 1;
             var memoryIDCourier = 1;
             var memoryIDDriver = 1;
-            
 
-            var products = new List<Product>
+            var customers = new Customer[3];
+
+            for (int i = 0; i < customers.Length; i++)
+            {
+                customers[i] = new Customer(i + 1, (i + 5).ToString());
+                customers[i].CustomerCart = new Cart(customers[i].ID);
+            }
+
+            var productsStore = new List<Product>
             {
                 new Fruit(1, "Apple"),
                 new Vegetable(2, "Tomato"),
                 new Milky(3, "Milk")
             }.ToArray();
 
-            products.PrintProducts();
+            var order = customers[0].CustomerCart.CreateOrder(productsStore);
+            //Console.WriteLine(order.Delivery.Address);
 
             Console.ReadKey();
         }
@@ -37,22 +45,65 @@
     }
 
     /// <summary>
-    /// Класс корзины заказов
+    /// Класс корзины
     /// </summary>
-
     public class Cart
     {
-        public int customerID;
-        public Product[] products;
+        private int customerId;
+        public int CustomerId { get => CustomerId = customerId; set => customerId = value; }
 
-        public Cart(int customerID)
+        private Product[] productStore;
+        public Product[] ProductStore { get; set; }
+
+        public Cart(int customerId)
         {
-            this.customerID = customerID;
+            this.customerId = customerId;
         }
 
-        public Order<Delivery> CreateOrder<TOrder>() where TOrder : Order<Delivery>
+        public Order<Delivery> CreateOrder(Product[] ProductStore)
         {
-            return new Order<Delivery>();
+            var random = new Random().Next();
+
+            var order = new Order<Delivery>(CustomerId, ProductStore)
+            {
+                Number = random,
+                Delivery = GetTypeDelivery(),
+                Description = InsertDescription()
+            };
+            return order;
+        }
+
+        private Delivery GetTypeDelivery()
+        {
+            Console.WriteLine("Выберите тип доставки цифрой:\n" +
+                "1. Доставка по адресу\n" +
+                "2. Доставка до пункта выдачи\n" +
+                "3. Забрать из магазина партнёра");
+
+            var type = int.Parse(Console.ReadLine());
+
+            switch (type)
+            {
+                case 1:
+                    Console.WriteLine("Доставка по адресу. Введите адрес доставки:");
+                    return new HomeDelivery()
+                    {
+                        Address = Console.ReadLine()
+                    };
+                case 2:
+                    return new PickPointDelivery();
+
+                case 3:
+                    return new ShopDelivery();
+            }
+
+            return default;
+        }
+
+        private string InsertDescription()
+        {
+            Console.WriteLine("Введите комментарий");
+            return Console.ReadLine();
         }
     }
 
@@ -62,10 +113,15 @@
 
     public abstract class User
     {
-        public int id;
-        public string userName;
-        public int phoneNumber;
-        public string eMail;
+        private int id;
+        private string userName;
+        private int phoneNumber;
+        private string eMail;
+
+        public int ID { get => ID = id; set => id = value; }
+        public string UserName { get => UserName = userName; set => userName = value; }
+        public int PhoneNumber { get; set; }
+        public string EMail { get; set; }
 
         public virtual Order<Delivery> MoveOrder(Order<Delivery> order)
         {
@@ -73,14 +129,24 @@
         }
     }
 
-    class Customer : User
+    public class Customer : User
     {
-        public Cart customerCart;
-        public Order<Delivery>[] myOrders;
+        private Cart customerCart;
+        public Cart CustomerCart { get => CustomerCart = customerCart; set => customerCart = value; }
 
-        public void AddOrder(Order<Delivery> order)
+        public Order<Delivery>[] MyOrders { get; set; }
+
+        private bool orderDone;
+
+        public Customer(int id, string name)
         {
-            var orders = myOrders;
+            ID = id;
+            UserName = name;
+        }
+
+        private void AddOrder(Order<Delivery> order)
+        {
+            var orders = MyOrders;
 
             var result = new Order<Delivery>[orders.Length + 1];
 
@@ -91,7 +157,7 @@
                 else
                     result[i] = order;
             }
-            myOrders = result;
+            MyOrders = result;
         }
     }
 
@@ -137,12 +203,19 @@
 
         public string Description;
 
-        public Product[] AddProduct<TProduct>(int customerID) where TProduct : Product
+        public Order(int customerId, Product[] products)
         {
-            return null;
+            _ = AddProduct<Product>(customerId, products);
         }
 
-       
+        public (bool, Product[]) AddProduct<TProduct>(int customerID, Product[] productsStore) where TProduct : Product
+        {
+            productsStore.PrintProducts();
+            return default;
+        }
+
+
+
         // ... Другие поля
     }
 
@@ -189,6 +262,7 @@
             this.name = name;
         }
     }
+
 }
 
 
