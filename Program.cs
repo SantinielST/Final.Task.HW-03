@@ -9,28 +9,54 @@
                 new Fruit(1, "Apple"),
                 new Vegetable(2, "Tomato"),
                 new Milky(3, "Milk")
-            };
+            }.ToArray();
+
+            products.PrintProducts();
+
             Console.ReadKey();
         }
     }
 
-    class Cart
+    /// <summary>
+    /// Статический класс вывода информации
+    /// </summary>
+    public static class Printer
+    {
+        public static void PrintProducts(this Product[] products)
+        {
+            foreach (var product in products)
+            {
+                Console.WriteLine($"{product.ID} {product.name}");
+            }
+        }
+    }
+
+    public class Cart
     {
         public int customerID;
         public Product[] products;
+
+        public Cart(int customerID)
+        {
+            this.customerID = customerID;
+        }
+
+        public Product[] AddProduct<TProduct>(int customerID) where TProduct : Product
+        {
+            return null;
+        }
 
         public Order<Delivery> CreateOrder<TOrder>() where TOrder : Order<Delivery>
         {
             return new Order<Delivery>();
         }
-
     }
 
     /// <summary>
     /// Классы пользователей
     /// </summary>
 
-    abstract class User
+    public abstract class User
     {
         public int id;
         public string userName;
@@ -43,40 +69,42 @@
     {
         public Cart customerCart;
         public Order<Delivery>[] myOrders;
+
+
     }
 
-    class Courier : User
+    public class Courier : User
     {
         public Order<HomeDelivery>[] ordersHomeDelivery;
     }
 
-    class Driver : User
+    public class Driver : User
     {
         public Order<Delivery>[] orders;
     }
 
 
-    abstract class Delivery
+    public abstract class Delivery
     {
         public string Address;
     }
 
-    class HomeDelivery : Delivery
+    public class HomeDelivery : Delivery
     {
         public int courierId;
     }
 
-    class PickPointDelivery : Delivery
+    public class PickPointDelivery : Delivery
     {
         public int driverId;
     }
 
-    class ShopDelivery : Delivery
+    public class ShopDelivery : Delivery
     {
         public int driverId;
     }
 
-    class Order<TDelivery> where TDelivery : Delivery
+    public class Order<TDelivery> where TDelivery : Delivery
     {
         public TDelivery Delivery;
 
@@ -93,23 +121,23 @@
     }
 
     /// <summary>
-    /// Добавлены классы продуктов
+    /// Классы продуктов
     /// </summary>
 
-    abstract class Product
+    public abstract class Product
     {
         public int id;
         public string name;
 
         public int ID { get => ID = id; protected set => id = value; }
-        public string Name { get => Name = name; set => Name = value; }
+        public string Name { get => Name = name; set => name = value; }
 
         protected Product(int id, string name)
         {
         }
     }
 
-    class Fruit : Product
+    public class Fruit : Product
     {
         public Fruit(int id, string name) : base(0, "Product")
         {
@@ -118,7 +146,7 @@
         }
     }
 
-    class Vegetable : Product
+    public class Vegetable : Product
     {
         public Vegetable(int id, string name) : base(0, "Product")
         {
@@ -127,7 +155,7 @@
         }
     }
 
-    class Milky : Product
+    public class Milky : Product
     {
         public Milky(int id, string name) : base(0, "Product")
         {
