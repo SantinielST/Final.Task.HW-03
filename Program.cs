@@ -4,8 +4,26 @@
     {
         static void Main(string[] args)
         {
-           
+            var products = new List<Product>
+            {
+                new Fruit(1, "Apple"),
+                new Vegetable(2, "Tomato"),
+                new Milky(3, "Milk")
+            };
+            Console.ReadKey();
         }
+    }
+
+    class Cart
+    {
+        public int customerID;
+        public Product[] products;
+
+        public Order<Delivery> CreateOrder<TOrder>() where TOrder : Order<Delivery>
+        {
+            return new Order<Delivery>();
+        }
+
     }
 
     /// <summary>
@@ -14,32 +32,29 @@
 
     abstract class User
     {
-        private int id;
-        public int ID { get; set; }
-
-        private string userName;
-        public string UserName { get; set; }
-
+        public int id;
+        public string userName;
         public int phoneNumber;
         public string eMail;
+
     }
 
-    class Customer<TMyOrders> : User
+    class Customer : User
     {
-        public TMyOrders myOrders;
+        public Cart customerCart;
+        public Order<Delivery>[] myOrders;
     }
 
-    class Courier<TOrder> : User
+    class Courier : User
     {
-        public TOrder orderHomeDelivery;
+        public Order<HomeDelivery>[] ordersHomeDelivery;
     }
 
-    class Driver<TOrderHD, TOrderSD>
+    class Driver : User
     {
-        public TOrderHD orderPickPointDelivery;
-        public TOrderSD orderShopDelivery;
+        public Order<Delivery>[] orders;
     }
-    
+
 
     abstract class Delivery
     {
@@ -77,10 +92,48 @@
         // ... Другие поля
     }
 
-    class MyOrders<TOrder>
+    /// <summary>
+    /// Добавлены классы продуктов
+    /// </summary>
+
+    abstract class Product
     {
-        public int userId;
-        public TOrder[] orders;
+        public int id;
+        public string name;
+
+        public int ID { get => ID = id; protected set => id = value; }
+        public string Name { get => Name = name; set => Name = value; }
+
+        protected Product(int id, string name)
+        {
+        }
+    }
+
+    class Fruit : Product
+    {
+        public Fruit(int id, string name) : base(0, "Product")
+        {
+            this.id = id;
+            this.name = name;
+        }
+    }
+
+    class Vegetable : Product
+    {
+        public Vegetable(int id, string name) : base(0, "Product")
+        {
+            this.id = id;
+            this.name = name;
+        }
+    }
+
+    class Milky : Product
+    {
+        public Milky(int id, string name) : base(0, "Product")
+        {
+            this.id = id;
+            this.name = name;
+        }
     }
 }
 
