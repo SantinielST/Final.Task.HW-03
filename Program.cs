@@ -24,6 +24,8 @@
             }.ToArray();
 
             var order = customers[0].CustomerCart.CreateOrder(productsStore);
+
+            order.AddProduct<Product>(customers[0].ID, productsStore);
             //Console.WriteLine(order.Delivery.Address);
 
             Console.ReadKey();
@@ -90,14 +92,23 @@
                     {
                         Address = Console.ReadLine()
                     };
+
                 case 2:
-                    return new PickPointDelivery();
+                    Console.WriteLine("Доставка в пункт выдачи. Введите адрес доставки:");
+                    return new PickPointDelivery()
+                    {
+                        Address = Console.ReadLine()
+                    };
 
                 case 3:
-                    return new ShopDelivery();
+                    Console.WriteLine("Доставка в магазин. Введите адрес доставки:");
+                    return new ShopDelivery()
+                    {
+                        Address = Console.ReadLine()
+                    };
             }
 
-            return default;
+            return GetTypeDelivery();
         }
 
         private string InsertDescription()
@@ -205,7 +216,7 @@
 
         public Order(int customerId, Product[] products)
         {
-            _ = AddProduct<Product>(customerId, products);
+            
         }
 
         public (bool, Product[]) AddProduct<TProduct>(int customerID, Product[] productsStore) where TProduct : Product
