@@ -14,8 +14,12 @@
 
     abstract class User
     {
-        public int id;
-        public string userName;
+        private int id;
+        public int ID { get; set; }
+
+        private string userName;
+        public string UserName { get; set; }
+
         public int phoneNumber;
         public string eMail;
     }
