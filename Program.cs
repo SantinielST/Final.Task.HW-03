@@ -41,8 +41,16 @@
         {
             foreach (var product in products)
             {
-                Console.WriteLine($"{product.ID} {product.name}");
+                Console.WriteLine($"{product.ID} {product.Name}");
             }
+        }
+
+        public static void PrintTypeDelivery()
+        {
+            Console.WriteLine("Выберите тип доставки цифрой:\n" +
+                 "1. Доставка по адресу\n" +
+                 "2. Доставка до пункта выдачи\n" +
+                 "3. Забрать из магазина партнёра");
         }
     }
 
@@ -64,7 +72,7 @@
 
         public Order<Delivery> CreateOrder(Product[] ProductStore)
         {
-            var random = new Random().Next();
+            var random = new Random().Next(100);
 
             var order = new Order<Delivery>(CustomerId, ProductStore)
             {
@@ -77,10 +85,7 @@
 
         private Delivery GetTypeDelivery()
         {
-            Console.WriteLine("Выберите тип доставки цифрой:\n" +
-                "1. Доставка по адресу\n" +
-                "2. Доставка до пункта выдачи\n" +
-                "3. Забрать из магазина партнёра");
+            Printer.PrintTypeDelivery();
 
             var type = int.Parse(Console.ReadLine());
 
@@ -236,8 +241,8 @@
 
     public abstract class Product
     {
-        public int id;
-        public string name;
+        private int id;
+        private string name;
 
         public int ID { get => ID = id; protected set => id = value; }
         public string Name { get => Name = name; set => name = value; }
@@ -251,8 +256,8 @@
     {
         public Fruit(int id, string name) : base(0, "Product")
         {
-            this.id = id;
-            this.name = name;
+            ID = id;
+            Name = name;
         }
     }
 
@@ -260,8 +265,8 @@
     {
         public Vegetable(int id, string name) : base(0, "Product")
         {
-            this.id = id;
-            this.name = name;
+            ID = id;
+            Name = name;
         }
     }
 
@@ -269,8 +274,8 @@
     {
         public Milky(int id, string name) : base(0, "Product")
         {
-            this.id = id;
-            this.name = name;
+            ID = id;
+            Name = name;
         }
     }
 
