@@ -25,7 +25,7 @@
 
             var order = customers[0].CustomerCart.CreateOrder(productsStore);
 
-            order.AddProduct<Product>(customers[0].ID, productsStore);
+            //order.AddProduct<Product>(customers[0].ID, productsStore);
 
             Console.ReadKey();
         }
@@ -126,14 +126,12 @@
                 Number = random,
             };
 
-
+            order.Delivery = order.GetTypeDelivery();
+            order.Description = order.InsertDescription();
+            order.ProductsStore = order.AddProduct<Product>(customerId);
 
             return order;
         }
-
-
-
-
     }
 
     /// <summary>
@@ -155,15 +153,8 @@
         public abstract Order<Delivery>[] OrdersCurrent { get; set; }
         public abstract Order<Delivery>[] OrdersFinished { get; set; }
 
-        public virtual Order<Delivery> AddOrderCurrent()
-        {
-            return default;
-        }
-
-        public virtual Order<Delivery> AddOrderFinal()
-        {
-            return default;
-        }
+        public abstract Order<Delivery> AddOrderCurrent();
+        public abstract Order<Delivery> AddOrderFinal();
 
         public virtual Order<Delivery> MoveOrder(Order<Delivery> order)
         {
@@ -202,18 +193,48 @@
             }
             OrdersCurrent = result;
         }
+
+        public override Order<Delivery> AddOrderCurrent()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Order<Delivery> AddOrderFinal()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class Courier : User
     {
         public override Order<Delivery>[] OrdersCurrent { get; set; }
         public override Order<Delivery>[] OrdersFinished { get; set; }
+
+        public override Order<Delivery> AddOrderCurrent()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Order<Delivery> AddOrderFinal()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class Driver : User
     {
         public override Order<Delivery>[] OrdersCurrent { get; set; }
         public override Order<Delivery>[] OrdersFinished { get; set; }
+
+        public override Order<Delivery> AddOrderCurrent()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Order<Delivery> AddOrderFinal()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
@@ -252,14 +273,62 @@
 
         public string Description;
 
+        private Product[] productsStore;
+        public Product[] ProductsStore { get => ProductsStore = productsStore; set => productsStore = value; }
+
         public Order(int customerId, Product[] products)
         {
-
+            this.productsStore = products;
         }
 
-        public (bool, Product[]) AddProduct<TProduct>(int customerID, Product[] productsStore) where TProduct : Product
+        public Product[] AddProduct<TProduct>(int customerID) where TProduct : Product
         {
-            productsStore.Print();
+            ProductsStore.Print();
+
+            var orderedProducts = new List<Product>();
+
+            var openOrder = true;
+
+            
+
+            while (openOrder)
+            {
+                Console.WriteLine("Выберите товар по номеру цифрами:");
+
+                var index = Checker.InsertInt();
+
+                var product = ProductsStore[index - 1];
+
+                Console.WriteLine("Укажите количество цифрами:");
+
+                var count = Checker.InsertInt();
+
+                var orderedProduct = new Product[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    orderedProduct[i] = ProductsStore[index - 1];
+                }
+
+                for (int i = 0; i < orderedProduct.Length; i++)
+                {
+                    orderedProducts.Add(orderedProduct[i]);
+                }
+
+                Console.WriteLine("Продолжить подбор товаров, (да или нет)?");
+
+                if (Checker.InsertString() == "нет")
+                {
+                    openOrder = false;
+                }
+
+                ProductsStore.Print();
+            }
+
+
+
+
+
             return default;
         }
 
