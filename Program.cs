@@ -26,18 +26,16 @@
             var order = customers[0].CustomerCart.CreateOrder(productsStore);
 
             order.AddProduct<Product>(customers[0].ID, productsStore);
-            //Console.WriteLine(order.Delivery.Address);
 
             Console.ReadKey();
         }
     }
-
     /// <summary>
     /// Статический класс вывода информации
     /// </summary>
     public static class Printer
     {
-        public static void PrintProducts(this Product[] products)
+        public static void Print(this Product[] products)// Вывести на экран список продуктов
         {
             foreach (var product in products)
             {
@@ -45,12 +43,61 @@
             }
         }
 
-        public static void PrintTypeDelivery()
+        public static void Print()// Сообщение о типах доставки
         {
             Console.WriteLine("Выберите тип доставки цифрой:\n" +
                  "1. Доставка по адресу\n" +
                  "2. Доставка до пункта выдачи\n" +
                  "3. Забрать из магазина партнёра");
+        }
+
+        public static void Print(int type)// Сообщение о внесении адреса
+        {
+            switch (type)
+            {
+                case 1:
+                    Console.WriteLine("Доставка по адресу. Введите адрес доставки:");
+                    break;
+                case 2:
+                    Console.WriteLine("Доставка в пункт выдачи. Введите адрес доставки:");
+                    break;
+
+                case 3:
+                    Console.WriteLine("Доставка в магазин. Введите адрес доставки:");
+                    break;
+                default:
+                    Console.WriteLine("Такого типа не существует, попробуйте снова.");
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Статический класс получения и конвертации данных из косоли
+    /// </summary>
+    public static class Checker
+    {
+        public static int InsertInt()
+        {
+            if (int.TryParse(Console.ReadLine(), out int result))
+            {
+                return result;
+            }
+
+            Console.WriteLine("Введите значение цифрами:");
+            return InsertInt();
+        }
+
+        public static string InsertString()
+        {
+            var insert = Console.ReadLine();
+            if (!string.IsNullOrWhiteSpace(insert))
+            {
+                return insert;
+            }
+
+            Console.WriteLine("Поле не должно быть путым. Попробуйте ещё раз:");
+            return InsertString();
         }
     }
 
@@ -77,50 +124,16 @@
             var order = new Order<Delivery>(CustomerId, ProductStore)
             {
                 Number = random,
-                Delivery = GetTypeDelivery(),
-                Description = InsertDescription()
             };
+
+
+
             return order;
         }
 
-        private Delivery GetTypeDelivery()
-        {
-            Printer.PrintTypeDelivery();
 
-            var type = int.Parse(Console.ReadLine());
 
-            switch (type)
-            {
-                case 1:
-                    Console.WriteLine("Доставка по адресу. Введите адрес доставки:");
-                    return new HomeDelivery()
-                    {
-                        Address = Console.ReadLine()
-                    };
 
-                case 2:
-                    Console.WriteLine("Доставка в пункт выдачи. Введите адрес доставки:");
-                    return new PickPointDelivery()
-                    {
-                        Address = Console.ReadLine()
-                    };
-
-                case 3:
-                    Console.WriteLine("Доставка в магазин. Введите адрес доставки:");
-                    return new ShopDelivery()
-                    {
-                        Address = Console.ReadLine()
-                    };
-            }
-
-            return GetTypeDelivery();
-        }
-
-        private string InsertDescription()
-        {
-            Console.WriteLine("Введите комментарий");
-            return Console.ReadLine();
-        }
     }
 
     /// <summary>
@@ -139,6 +152,19 @@
         public int PhoneNumber { get; set; }
         public string EMail { get; set; }
 
+        public abstract Order<Delivery>[] OrdersCurrent { get; set; }
+        public abstract Order<Delivery>[] OrdersFinished { get; set; }
+
+        public virtual Order<Delivery> AddOrderCurrent()
+        {
+            return default;
+        }
+
+        public virtual Order<Delivery> AddOrderFinal()
+        {
+            return default;
+        }
+
         public virtual Order<Delivery> MoveOrder(Order<Delivery> order)
         {
             return default;
@@ -150,7 +176,8 @@
         private Cart customerCart;
         public Cart CustomerCart { get => CustomerCart = customerCart; set => customerCart = value; }
 
-        public Order<Delivery>[] MyOrders { get; set; }
+        public override Order<Delivery>[] OrdersCurrent { get; set; }
+        public override Order<Delivery>[] OrdersFinished { get; set; }
 
         private bool orderDone;
 
@@ -162,7 +189,7 @@
 
         private void AddOrder(Order<Delivery> order)
         {
-            var orders = MyOrders;
+            var orders = OrdersCurrent;
 
             var result = new Order<Delivery>[orders.Length + 1];
 
@@ -173,18 +200,20 @@
                 else
                     result[i] = order;
             }
-            MyOrders = result;
+            OrdersCurrent = result;
         }
     }
 
     public class Courier : User
     {
-        public Order<HomeDelivery>[] ordersHomeDelivery;
+        public override Order<Delivery>[] OrdersCurrent { get; set; }
+        public override Order<Delivery>[] OrdersFinished { get; set; }
     }
 
     public class Driver : User
     {
-        public Order<Delivery>[] orders;
+        public override Order<Delivery>[] OrdersCurrent { get; set; }
+        public override Order<Delivery>[] OrdersFinished { get; set; }
     }
 
     /// <summary>
@@ -203,12 +232,16 @@
     public class PickPointDelivery : Delivery
     {
         public int driverId;
+
+        public string[] AddressesPickPoints { get; set; }
     }
 
     public class ShopDelivery : Delivery
     {
         public int driverId;
         public string companyName;
+
+        public string[] AddressesShops { get; set; }
     }
 
     public class Order<TDelivery> where TDelivery : Delivery
@@ -221,18 +254,53 @@
 
         public Order(int customerId, Product[] products)
         {
-            
+
         }
 
         public (bool, Product[]) AddProduct<TProduct>(int customerID, Product[] productsStore) where TProduct : Product
         {
-            productsStore.PrintProducts();
+            productsStore.Print();
             return default;
         }
 
+        public Delivery GetTypeDelivery()
+        {
+            Printer.Print();
 
+            var type = Checker.InsertInt();
 
-        // ... Другие поля
+            switch (type)
+            {
+                case 1:
+                    Printer.Print(type);
+                    return new HomeDelivery()
+                    {
+                        Address = Checker.InsertString(),
+                    };
+
+                case 2:
+                    Printer.Print(type);
+                    return new PickPointDelivery()
+                    {
+                        Address = Checker.InsertString(),
+                    };
+
+                case 3:
+                    Printer.Print(type);
+                    return new ShopDelivery()
+                    {
+                        Address = Checker.InsertString(),
+                    };
+            }
+            Printer.Print(type);
+            return GetTypeDelivery();
+        }
+
+        public string InsertDescription()
+        {
+            Console.WriteLine("Введите комментарий:");
+            return Checker.InsertString();
+        }
     }
 
     /// <summary>
