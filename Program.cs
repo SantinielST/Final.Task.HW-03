@@ -23,7 +23,9 @@
                 new Milky(3, "Milk")
             }.ToArray();
 
-            var order = customers[0].CustomerCart.CreateOrder(productsStore);
+            customers[0].CustomerCart.CreateOrder(productsStore);
+
+            //var order = customers[0].CustomerCart.CreateOrder(productsStore);
 
             //order.AddProduct<Product>(customers[0].ID, productsStore);
 
@@ -35,10 +37,25 @@
     /// </summary>
     public static class Printer
     {
-        public static void Print(this Product[] products)// Вывести на экран список продуктов
+        public static void Print<TProducts>(this TProducts[] products) where TProducts : Product// Вывести на экран список продуктов
         {
             foreach (var product in products)
             {
+                Console.WriteLine($"{product.ID} {product.Name}");
+            }
+        }
+
+        public static void Print(this List<Product> products)// Вывести на экран список заказанных продуктов
+        {
+            var printOrderProd = new List<Product>();
+
+            foreach (var product in products)
+            {
+                for (int i = 0; i > products.Count; i++)
+                {
+
+                }
+
                 Console.WriteLine($"{product.ID} {product.Name}");
             }
         }
@@ -96,7 +113,7 @@
                 return insert;
             }
 
-            Console.WriteLine("Поле не должно быть путым. Попробуйте ещё раз:");
+            Console.WriteLine("Поле не должно быть пустым. Попробуйте ещё раз:");
             return InsertString();
         }
     }
@@ -289,8 +306,6 @@
 
             var openOrder = true;
 
-            
-
             while (openOrder)
             {
                 Console.WriteLine("Выберите товар по номеру цифрами:");
@@ -308,11 +323,12 @@
                 for (int i = 0; i < count; i++)
                 {
                     orderedProduct[i] = ProductsStore[index - 1];
+                    orderedProducts.Add(orderedProduct[i]);
                 }
 
                 for (int i = 0; i < orderedProduct.Length; i++)
                 {
-                    orderedProducts.Add(orderedProduct[i]);
+
                 }
 
                 Console.WriteLine("Продолжить подбор товаров, (да или нет)?");
@@ -320,14 +336,15 @@
                 if (Checker.InsertString() == "нет")
                 {
                     openOrder = false;
+                    Console.WriteLine("Ваш заказ:");
+                   
+
                 }
-
-                ProductsStore.Print();
+                else
+                {
+                    ProductsStore.Print();
+                }
             }
-
-
-
-
 
             return default;
         }
