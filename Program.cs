@@ -36,6 +36,8 @@
                 driver.OrdersCurrent[0] = customer.OrdersCurrent[0];
 
                 driver.MoveOrder(driver.OrdersCurrent[0]);
+
+                Console.WriteLine();
                 Console.WriteLine("Заказ доставлен!");
             }
 
@@ -103,6 +105,7 @@
 
         public static void Print(this Order<Delivery> order)// Вывод на экран итоговой информации по заказу
         {
+            Console.WriteLine();
             Console.WriteLine($"Ваш заказ №{order.Number}\n" +
                 $"Доставка по адресу: {order.Delivery.Address}\n" +
                 $"Комментарий: {order.Description}\n" +
@@ -169,6 +172,9 @@
         }
     }
 
+    /// <summary>
+    /// Класс перегрузки операторов true/false
+    /// </summary>
     public class Answer
     {
         private string line; 
