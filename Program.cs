@@ -22,11 +22,27 @@
             for (int i = 0; i < customers.Length; i++)
             {
                 customers[i] = new Customer(i + 1, ($"Customer{i + 1}"));
-                customers[i].CustomerCart = new Cart(customers[i].ID, productsStore, addressesPickPoint, adressesShop);
             }
 
-            customers[0].OrdersCurrent = new[] { customers[0].CustomerCart.CreateOrder() };
+            customers[0].OrdersCurrent = new[] { customers[0].CustomerCart.CreateOrder<Order<Delivery>>(addressesPickPoint, adressesShop, productsStore) };
             customers[0].OrdersCurrent[0].Print();
+
+            if (customers[0].OrdersCurrent[0].Delivery is HomeDelivery)
+            {
+                courier.OrdersCurrent = new Order<Delivery>[customers[0].OrdersCurrent.Length];
+                courier.OrdersCurrent[0] = customers[0].OrdersCurrent[0];
+
+                courier.MoveOrder(courier.OrdersCurrent[0]);
+                Console.WriteLine("Заказ доставлен!");
+            }
+            else
+            {
+                driver.OrdersCurrent = new Order<Delivery>[customers[0].OrdersCurrent.Length];
+                driver.OrdersCurrent[0] = customers[0].OrdersCurrent[0];
+
+                driver.MoveOrder(driver.OrdersCurrent[0]);
+                Console.WriteLine("Заказ доставлен!");
+            }
 
             Console.ReadKey();
         }
@@ -47,7 +63,7 @@
         public static void PrintOrderedProducts<TProduct>(this TProduct[] orderdProducts) where TProduct : Product// Вывести на экран список заказанных продуктов
         {
             var products = orderdProducts.GroupBy(p => p.ID);
-            
+
             foreach (var product in products)
             {
                 Console.WriteLine($"{product.Select(p => p.Name).First()} {product.Count()}");
@@ -169,9 +185,6 @@
         private int customerId;
         public int CustomerId { get => CustomerId = customerId; set => customerId = value; }
 
-        private string[] addressesPickPoint;
-        private string[] adressesShop;
-
         private Product[] productsStore;
         public Product[] ProductsStore
         {
@@ -211,16 +224,15 @@
             }
         }
 
-        public Cart(int customerId, Product[] products, string[] addressesPP, string[] addressesPPShops)
+        public Cart(int customerId)
         {
             this.customerId = customerId;
-            productsStore = products;
-            addressesPickPoint = addressesPP;
-            adressesShop = addressesPPShops;
         }
 
-        public Order<Delivery> CreateOrder()
+        public Order<Delivery> CreateOrder<TOrder>(string[] addressesPickPoint, string[] adressesShop, Product[] products) where TOrder : Order<Delivery>
         {
+            productsStore = products;
+
             var random = new Random().Next(100);
 
             var order = new Order<Delivery>(ProductsStore)
@@ -230,13 +242,15 @@
 
             order.Delivery = order.GetTypeDelivery(addressesPickPoint, adressesShop);
             order.Description = order.InsertDescription();
-            order.OrderedProducts = AddProduct<Product>();
+            order.OrderedProducts = AddProduct<Product>(products);
 
             return order;
         }
 
-        private Product[] AddProduct<TProduct>() where TProduct : Product // Метод добавления товаров в корзину
+        private Product[] AddProduct<TProduct>(Product[] products) where TProduct : Product // Метод добавления товаров в корзину
         {
+            productsStore = products;
+
             var orderedProducts = new List<Product>();
             var openOrder = true;
 
@@ -286,8 +300,8 @@
     /// </summary>
     public abstract class User
     {
-        private int id;
-        private string userName;
+        public int id;
+        public string userName;
 
         public int ID { get => ID = id; set => id = value; }
         public string UserName { get => UserName = userName; set => userName = value; }
@@ -295,7 +309,6 @@
         public abstract Order<Delivery>[] OrdersCurrent { get; set; }
         public abstract Order<Delivery>[] OrdersFinished { get; set; }
 
-        public abstract Order<Delivery> AddOrderCurrent();
         public abstract Order<Delivery> AddOrderFinal();
 
         public User(int id, string userName)
@@ -321,34 +334,20 @@
 
         public Customer(int id, string name) : base(id, name)
         {
-            ID = id;
-            UserName = name;
+            this.id = id;
+            this.userName = name;
+
+            customerCart = new Cart(ID);
         }
 
-        private void AddOrder(Order<Delivery> order)
+        public override Order<Delivery> MoveOrder(Order<Delivery> order)
         {
-            var orders = OrdersCurrent;
-
-            var result = new Order<Delivery>[orders.Length + 1];
-
-            for (int i = 0; i < result.Length; i++)
-            {
-                if (i < result.Length - 1)
-                    result[i] = orders[i];
-                else
-                    result[i] = order;
-            }
-            OrdersCurrent = result;
-        }
-
-        public override Order<Delivery> AddOrderCurrent()
-        {
-            throw new NotImplementedException();
+            return OrdersFinished[0] = AddOrderFinal();
         }
 
         public override Order<Delivery> AddOrderFinal()
         {
-            throw new NotImplementedException();
+            return OrdersCurrent[0];
         }
     }
 
@@ -361,14 +360,16 @@
         {
         }
 
-        public override Order<Delivery> AddOrderCurrent()
+        public override Order<Delivery> MoveOrder(Order<Delivery> order)
         {
-            throw new NotImplementedException();
+            OrdersFinished = new Order<Delivery>[OrdersCurrent.Length];
+
+            return OrdersFinished[0] = AddOrderFinal();
         }
 
         public override Order<Delivery> AddOrderFinal()
         {
-            throw new NotImplementedException();
+            return OrdersCurrent[0];
         }
     }
 
@@ -382,15 +383,16 @@
 
         }
 
-
-        public override Order<Delivery> AddOrderCurrent()
+        public override Order<Delivery> MoveOrder(Order<Delivery> order)
         {
-            throw new NotImplementedException();
+            OrdersFinished = new Order<Delivery>[OrdersCurrent.Length];
+
+            return OrdersFinished[0] = AddOrderFinal();
         }
 
         public override Order<Delivery> AddOrderFinal()
         {
-            throw new NotImplementedException();
+            return OrdersCurrent[0];
         }
     }
 
