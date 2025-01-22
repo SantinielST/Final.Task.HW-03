@@ -1,33 +1,32 @@
-﻿namespace Final.Task.HW_03
+﻿using System.Runtime.CompilerServices;
+
+namespace Final.Task.HW_03
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            var memoryIDCustomer = 1;
-            var memoryIDCourier = 1;
-            var memoryIDDriver = 1;
+            var addressesPickPoint = new[] { "Арбатская", "Павелецкая", "Марьино" };
+            var adressesShop = new[] { "Королёв", "Видное", "Одинцово" };
 
-            var customers = new Customer[3];
-
-            for (int i = 0; i < customers.Length; i++)
-            {
-                customers[i] = new Customer(i + 1, (i + 5).ToString());
-                customers[i].CustomerCart = new Cart(customers[i].ID);
-            }
-
-            var productsStore = new List<Product>
+            var productsStore = new Product[]
             {
                 new Fruit(1, "Apple"),
                 new Vegetable(2, "Tomato"),
                 new Milky(3, "Milk")
-            }.ToArray();
+            };
 
-            customers[0].CustomerCart.CreateOrder(productsStore);
+            var courier = new Courier(1, "Courier1");
+            var driver = new Driver(1, "Driver1");
+            var customers = new Customer[3];
 
-            //var order = customers[0].CustomerCart.CreateOrder(productsStore);
+            for (int i = 0; i < customers.Length; i++)
+            {
+                customers[i] = new Customer(i + 1, ($"Customer{i + 1}"));
+                customers[i].CustomerCart = new Cart(customers[i].ID, productsStore, addressesPickPoint, adressesShop);
+            }
 
-            //order.AddProduct<Product>(customers[0].ID, productsStore);
+            customers[0].CustomerCart.CreateOrder();
 
             Console.ReadKey();
         }
@@ -60,6 +59,14 @@
             }
         }
 
+        public static void Print(this string[] addresses)
+        {
+            for (int i = 0; i < addresses.Length; i++)
+            {
+                Console.WriteLine($"{i + 1} {addresses[i]}");
+            }
+        }
+
         public static void Print()// Сообщение о типах доставки
         {
             Console.WriteLine("Выберите тип доставки цифрой:\n" +
@@ -76,11 +83,11 @@
                     Console.WriteLine("Доставка по адресу. Введите адрес доставки:");
                     break;
                 case 2:
-                    Console.WriteLine("Доставка в пункт выдачи. Введите адрес доставки:");
+                    Console.WriteLine("Доставка в пункт выдачи. Выберите адрес доставки:");
                     break;
 
                 case 3:
-                    Console.WriteLine("Доставка в магазин. Введите адрес доставки:");
+                    Console.WriteLine("Доставка в магазин. Выберите адрес доставки:");
                     break;
                 default:
                     Console.WriteLine("Такого типа не существует, попробуйте снова.");
@@ -126,24 +133,67 @@
         private int customerId;
         public int CustomerId { get => CustomerId = customerId; set => customerId = value; }
 
-        private Product[] productStore;
-        public Product[] ProductStore { get; set; }
+        private string[] addressesPickPoint;
+        private string[] adressesShop;
 
-        public Cart(int customerId)
+        private Product[] productsStore;
+        public Product[] ProductsStore
         {
-            this.customerId = customerId;
+            get => ProductsStore = productsStore;
+            private set
+            {
+                if (value is null || value.Length == 0)
+                {
+                    Console.WriteLine("В магазине закончился товар.");
+                    // Закончить выполнение программы.
+                }
+                else
+                {
+                    productsStore = value;
+                }
+            }
         }
 
-        public Order<Delivery> CreateOrder(Product[] ProductStore)
+        public Product this[int index]
+        {
+            get
+            {
+                if (index >= 0 && index < productsStore.Length)
+                {
+                    return productsStore[index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            private set
+            {
+                if (index >= 0 && index < productsStore.Length)
+                {
+                    productsStore[index] = value;
+                }
+            }
+        }
+
+        public Cart(int customerId, Product[] products, string[] addressesPP, string[] addressesPPShops)
+        {
+            this.customerId = customerId;
+            productsStore = products;
+            addressesPickPoint = addressesPP;
+            adressesShop = addressesPPShops;
+        }
+
+        public Order<Delivery> CreateOrder()
         {
             var random = new Random().Next(100);
 
-            var order = new Order<Delivery>(CustomerId, ProductStore)
+            var order = new Order<Delivery>(ProductsStore)
             {
                 Number = random,
             };
 
-            order.Delivery = order.GetTypeDelivery();
+            order.Delivery = order.GetTypeDelivery(addressesPickPoint, adressesShop);
             order.Description = order.InsertDescription();
             order.ProductsStore = order.AddProduct<Product>(customerId);
 
@@ -173,6 +223,11 @@
         public abstract Order<Delivery> AddOrderCurrent();
         public abstract Order<Delivery> AddOrderFinal();
 
+        public User(int id, string userName)
+        {
+
+        }
+
         public virtual Order<Delivery> MoveOrder(Order<Delivery> order)
         {
             return default;
@@ -189,7 +244,7 @@
 
         private bool orderDone;
 
-        public Customer(int id, string name)
+        public Customer(int id, string name) : base(id, name)
         {
             ID = id;
             UserName = name;
@@ -227,6 +282,10 @@
         public override Order<Delivery>[] OrdersCurrent { get; set; }
         public override Order<Delivery>[] OrdersFinished { get; set; }
 
+        public Courier(int id, string userName) : base(id, userName)
+        {
+        }
+
         public override Order<Delivery> AddOrderCurrent()
         {
             throw new NotImplementedException();
@@ -242,6 +301,12 @@
     {
         public override Order<Delivery>[] OrdersCurrent { get; set; }
         public override Order<Delivery>[] OrdersFinished { get; set; }
+
+        public Driver(int id, string driverName) : base(id, driverName)
+        {
+
+        }
+
 
         public override Order<Delivery> AddOrderCurrent()
         {
@@ -291,9 +356,30 @@
         public string Description;
 
         private Product[] productsStore;
-        public Product[] ProductsStore { get => ProductsStore = productsStore; set => productsStore = value; }
+        public Product[] ProductsStore { get; set; }
+        public Product this[int index]
+        {
+            get
+            {
+                if (index >= 0 && index < productsStore.Length)
+                {
+                    return productsStore[index];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            private set
+            {
+                if (index >= 0 && index < productsStore.Length)
+                {
+                    productsStore[index] = value;
+                }
+            }
+        }
 
-        public Order(int customerId, Product[] products)
+        public Order(Product[] products)
         {
             this.productsStore = products;
         }
@@ -337,7 +423,7 @@
                 {
                     openOrder = false;
                     Console.WriteLine("Ваш заказ:");
-                   
+
 
                 }
                 else
@@ -349,7 +435,7 @@
             return default;
         }
 
-        public Delivery GetTypeDelivery()
+        public Delivery GetTypeDelivery(string[] addressesPP, string[] addressesPPShops) // Выбор типа доставки
         {
             Printer.Print();
 
@@ -366,20 +452,22 @@
 
                 case 2:
                     Printer.Print(type);
+                    addressesPP.Print();
                     return new PickPointDelivery()
                     {
-                        Address = Checker.InsertString(),
+                        Address = addressesPP[Checker.InsertInt() - 1],
                     };
 
                 case 3:
                     Printer.Print(type);
+                    addressesPPShops.Print();
                     return new ShopDelivery()
                     {
-                        Address = Checker.InsertString(),
+                        Address = addressesPPShops[Checker.InsertInt() - 1],
                     };
             }
             Printer.Print(type);
-            return GetTypeDelivery();
+            return GetTypeDelivery(addressesPP, addressesPPShops);
         }
 
         public string InsertDescription()
@@ -408,7 +496,7 @@
 
     public class Fruit : Product
     {
-        public Fruit(int id, string name) : base(0, "Product")
+        public Fruit(int id, string name) : base(id, name)
         {
             ID = id;
             Name = name;
@@ -417,7 +505,7 @@
 
     public class Vegetable : Product
     {
-        public Vegetable(int id, string name) : base(0, "Product")
+        public Vegetable(int id, string name) : base(id, name)
         {
             ID = id;
             Name = name;
@@ -426,7 +514,7 @@
 
     public class Milky : Product
     {
-        public Milky(int id, string name) : base(0, "Product")
+        public Milky(int id, string name) : base(id, name)
         {
             ID = id;
             Name = name;
