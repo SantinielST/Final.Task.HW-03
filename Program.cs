@@ -17,28 +17,23 @@
 
             var courier = new Courier(1, "Courier1");
             var driver = new Driver(1, "Driver1");
-            var customers = new Customer[3];
+            var customer = new Customer(1, "Customer1");
 
-            for (int i = 0; i < customers.Length; i++)
+            customer.OrdersCurrent = new[] { customer.CustomerCart.CreateOrder<Order<Delivery>>(addressesPickPoint, adressesShop, productsStore) };
+            customer.OrdersCurrent[0].Print();
+
+            if (customer.OrdersCurrent[0].Delivery is HomeDelivery)
             {
-                customers[i] = new Customer(i + 1, ($"Customer{i + 1}"));
-            }
-
-            customers[0].OrdersCurrent = new[] { customers[0].CustomerCart.CreateOrder<Order<Delivery>>(addressesPickPoint, adressesShop, productsStore) };
-            customers[0].OrdersCurrent[0].Print();
-
-            if (customers[0].OrdersCurrent[0].Delivery is HomeDelivery)
-            {
-                courier.OrdersCurrent = new Order<Delivery>[customers[0].OrdersCurrent.Length];
-                courier.OrdersCurrent[0] = customers[0].OrdersCurrent[0];
+                courier.OrdersCurrent = new Order<Delivery>[customer.OrdersCurrent.Length];
+                courier.OrdersCurrent[0] = customer.OrdersCurrent[0];
 
                 courier.MoveOrder(courier.OrdersCurrent[0]);
                 Console.WriteLine("Заказ доставлен!");
             }
             else
             {
-                driver.OrdersCurrent = new Order<Delivery>[customers[0].OrdersCurrent.Length];
-                driver.OrdersCurrent[0] = customers[0].OrdersCurrent[0];
+                driver.OrdersCurrent = new Order<Delivery>[customer.OrdersCurrent.Length];
+                driver.OrdersCurrent[0] = customer.OrdersCurrent[0];
 
                 driver.MoveOrder(driver.OrdersCurrent[0]);
                 Console.WriteLine("Заказ доставлен!");
@@ -309,12 +304,12 @@
         public abstract Order<Delivery>[] OrdersCurrent { get; set; }
         public abstract Order<Delivery>[] OrdersFinished { get; set; }
 
-        public abstract Order<Delivery> AddOrderFinal();
-
         public User(int id, string userName)
         {
 
         }
+        
+        public abstract Order<Delivery> AddOrderFinal();
 
         public virtual Order<Delivery> MoveOrder(Order<Delivery> order)
         {
