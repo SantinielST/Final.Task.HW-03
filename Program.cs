@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-
-namespace Final.Task.HW_03
+﻿namespace Final.Task.HW_03
 {
     internal class Program
     {
@@ -26,7 +24,8 @@ namespace Final.Task.HW_03
                 customers[i].CustomerCart = new Cart(customers[i].ID, productsStore, addressesPickPoint, adressesShop);
             }
 
-            customers[0].CustomerCart.CreateOrder();
+            customers[0].OrdersCurrent = new[] { customers[0].CustomerCart.CreateOrder() };
+            customers[0].OrdersCurrent[0].Print();
 
             Console.ReadKey();
         }
@@ -44,22 +43,22 @@ namespace Final.Task.HW_03
             }
         }
 
-        public static void Print(this List<Product> products)// Вывести на экран список заказанных продуктов
-        {
-            var printOrderProd = new List<Product>();
+        //public static void Print(this List<Product> products)// Вывести на экран список заказанных продуктов
+        //{
+        //    var printOrderProd = new List<Product>();
 
-            foreach (var product in products)
-            {
-                for (int i = 0; i > products.Count; i++)
-                {
+        //    foreach (var product in products)
+        //    {
+        //        for (int i = 0; i > products.Count; i++)
+        //        {
 
-                }
+        //        }
 
-                Console.WriteLine($"{product.ID} {product.Name}");
-            }
-        }
+        //        Console.WriteLine($"{product.ID} {product.Name}");
+        //    }
+        //}
 
-        public static void Print(this string[] addresses)
+        public static void Print(this string[] addresses)// Вевести на экран адреса доставки
         {
             for (int i = 0; i < addresses.Length; i++)
             {
@@ -94,6 +93,16 @@ namespace Final.Task.HW_03
                     break;
             }
         }
+
+        public static void Print(this Order<Delivery> order)
+        {
+            Console.WriteLine($"Ваш заказ №{order.Number}\n" +
+                $"Доставка по адресу: {order.Delivery.Address}\n" +
+                $"Комментарий: {order.Description}\n" +
+                $"Ваши покупки:");
+
+            order.OrderedProducts.Print();
+        }
     }
 
     /// <summary>
@@ -122,6 +131,37 @@ namespace Final.Task.HW_03
 
             Console.WriteLine("Поле не должно быть пустым. Попробуйте ещё раз:");
             return InsertString();
+        }
+
+        public static bool ContinueOrder()
+        {
+            var answer = Console.ReadLine().ToLower();
+            var validAnswers = new string[] { "да", "нет" };
+
+            if (answer == validAnswers[0] || answer == validAnswers[1])
+            {
+                if (answer == validAnswers[0])
+                    return true;
+                else
+                    return false;
+            }
+            else
+            {
+                Console.WriteLine("Уточните, (\"да\" или \"нет\"):");
+                return ContinueOrder();
+            }
+        }
+
+        public static int CheckIndexRange(string[] addresses)
+        {
+            if (int.TryParse(Console.ReadLine(), out int result))
+            {
+                if (result <= addresses.LongLength && result > 0)
+                    return result;
+            }
+
+            Console.WriteLine("Такого адреса не существует, попробуйте снова:");
+            return CheckIndexRange(addresses);
         }
     }
 
@@ -153,7 +193,6 @@ namespace Final.Task.HW_03
                 }
             }
         }
-
         public Product this[int index]
         {
             get
@@ -195,9 +234,53 @@ namespace Final.Task.HW_03
 
             order.Delivery = order.GetTypeDelivery(addressesPickPoint, adressesShop);
             order.Description = order.InsertDescription();
-            order.ProductsStore = order.AddProduct<Product>(customerId);
+            order.OrderedProducts = AddProduct<Product>();
 
             return order;
+        }
+
+        private Product[] AddProduct<TProduct>() where TProduct : Product // Метод добавления товаров в корзину
+        {
+            var orderedProducts = new List<Product>();
+            var openOrder = true;
+
+            while (openOrder)
+            {
+                Console.WriteLine("Выберите товар по номеру цифрами:");
+                ProductsStore.Print();
+
+                var index = Checker.InsertInt();
+
+                if (index <= ProductsStore.LongLength && index > 0)
+                {
+                    var product = ProductsStore[index - 1];
+                }
+                else
+                {
+                    Console.WriteLine("Такого товара не существует, попробуйте снова.");
+                    ProductsStore.Print();
+                    continue;
+                }
+
+                Console.WriteLine("Укажите количество цифрами:");
+
+                var count = Checker.InsertInt();
+                var orderedProduct = new Product[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    orderedProduct[i] = ProductsStore[index - 1];
+                    orderedProducts.Add(orderedProduct[i]);
+                }
+
+                Console.WriteLine("Продолжить подбор товаров, (да или нет)?");
+
+                if (!Checker.ContinueOrder())
+                {
+                    openOrder = false;
+                }
+            }
+            return orderedProducts.ToArray();
         }
     }
 
@@ -209,13 +292,9 @@ namespace Final.Task.HW_03
     {
         private int id;
         private string userName;
-        private int phoneNumber;
-        private string eMail;
 
         public int ID { get => ID = id; set => id = value; }
         public string UserName { get => UserName = userName; set => userName = value; }
-        public int PhoneNumber { get; set; }
-        public string EMail { get; set; }
 
         public abstract Order<Delivery>[] OrdersCurrent { get; set; }
         public abstract Order<Delivery>[] OrdersFinished { get; set; }
@@ -335,18 +414,17 @@ namespace Final.Task.HW_03
     public class PickPointDelivery : Delivery
     {
         public int driverId;
-
-        public string[] AddressesPickPoints { get; set; }
     }
 
     public class ShopDelivery : Delivery
     {
         public int driverId;
-        public string companyName;
-
-        public string[] AddressesShops { get; set; }
     }
 
+    /// <summary>
+    /// Класс заказа
+    /// </summary>
+    /// <typeparam name="TDelivery"></typeparam>
     public class Order<TDelivery> where TDelivery : Delivery
     {
         public TDelivery Delivery;
@@ -355,15 +433,15 @@ namespace Final.Task.HW_03
 
         public string Description;
 
-        private Product[] productsStore;
-        public Product[] ProductsStore { get; set; }
+        private Product[] orderedProducts;
+        public Product[] OrderedProducts { get => OrderedProducts = orderedProducts; set => orderedProducts = value; }
         public Product this[int index]
         {
             get
             {
-                if (index >= 0 && index < productsStore.Length)
+                if (index >= 0 && index < orderedProducts.Length)
                 {
-                    return productsStore[index];
+                    return orderedProducts[index];
                 }
                 else
                 {
@@ -372,67 +450,16 @@ namespace Final.Task.HW_03
             }
             private set
             {
-                if (index >= 0 && index < productsStore.Length)
+                if (index >= 0 && index < orderedProducts.Length)
                 {
-                    productsStore[index] = value;
+                    orderedProducts[index] = value;
                 }
             }
         }
 
         public Order(Product[] products)
         {
-            this.productsStore = products;
-        }
-
-        public Product[] AddProduct<TProduct>(int customerID) where TProduct : Product
-        {
-            ProductsStore.Print();
-
-            var orderedProducts = new List<Product>();
-
-            var openOrder = true;
-
-            while (openOrder)
-            {
-                Console.WriteLine("Выберите товар по номеру цифрами:");
-
-                var index = Checker.InsertInt();
-
-                var product = ProductsStore[index - 1];
-
-                Console.WriteLine("Укажите количество цифрами:");
-
-                var count = Checker.InsertInt();
-
-                var orderedProduct = new Product[count];
-
-                for (int i = 0; i < count; i++)
-                {
-                    orderedProduct[i] = ProductsStore[index - 1];
-                    orderedProducts.Add(orderedProduct[i]);
-                }
-
-                for (int i = 0; i < orderedProduct.Length; i++)
-                {
-
-                }
-
-                Console.WriteLine("Продолжить подбор товаров, (да или нет)?");
-
-                if (Checker.InsertString() == "нет")
-                {
-                    openOrder = false;
-                    Console.WriteLine("Ваш заказ:");
-
-
-                }
-                else
-                {
-                    ProductsStore.Print();
-                }
-            }
-
-            return default;
+            this.orderedProducts = products;
         }
 
         public Delivery GetTypeDelivery(string[] addressesPP, string[] addressesPPShops) // Выбор типа доставки
@@ -455,7 +482,7 @@ namespace Final.Task.HW_03
                     addressesPP.Print();
                     return new PickPointDelivery()
                     {
-                        Address = addressesPP[Checker.InsertInt() - 1],
+                        Address = addressesPP[Checker.CheckIndexRange(addressesPP) - 1],
                     };
 
                 case 3:
@@ -463,7 +490,7 @@ namespace Final.Task.HW_03
                     addressesPPShops.Print();
                     return new ShopDelivery()
                     {
-                        Address = addressesPPShops[Checker.InsertInt() - 1],
+                        Address = addressesPPShops[Checker.CheckIndexRange(addressesPP) - 1],
                     };
             }
             Printer.Print(type);
