@@ -140,22 +140,19 @@
             return InsertString();
         }
 
-        public static bool ContinueOrder() // Метод проверки ответа для продолжения/завершения заказа
+        public static string CheckLine() // Метод проверки ответа для продолжения/завершения заказа
         {
             var answer = Console.ReadLine().ToLower();
             var validAnswers = new string[] { "да", "нет" };
 
             if (answer == validAnswers[0] || answer == validAnswers[1])
             {
-                if (answer == validAnswers[0])
-                    return true;
-                else
-                    return false;
+                return answer;
             }
             else
             {
                 Console.WriteLine("Уточните, (\"да\" или \"нет\"):");
-                return ContinueOrder();
+                return CheckLine();
             }
         }
 
@@ -169,6 +166,29 @@
 
             Console.WriteLine("Такого адреса не существует, попробуйте снова:");
             return CheckIndexRange(addresses);
+        }
+    }
+
+    public class Answer
+    {
+        private string line; 
+        public string Line { get => Line = line; set => line = value; }
+
+        public Answer()
+        {
+            line = Checker.CheckLine();
+        }
+
+        public static bool operator true(Answer answer)
+        {
+            return answer.Line == "нет";
+        }
+
+        public static bool operator false(Answer answer)
+        {
+            var Line = Checker.InsertString();
+
+            return answer.Line == "да";
         }
     }
 
@@ -280,7 +300,9 @@
 
                 Console.WriteLine("Продолжить подбор товаров, (да или нет)?");
 
-                if (!Checker.ContinueOrder())
+                var answer = new Answer();
+
+                if (answer)
                 {
                     openOrder = false;
                 }
