@@ -11,7 +11,8 @@
             {
                 new Fruit(1, "Apple"),
                 new Vegetable(2, "Tomato"),
-                new Milky(3, "Milk")
+                new Milky(3, "Milk"),
+                new Fruit(4, "Orange")
             };
 
             var courier = new Courier(1, "Courier1");
@@ -35,7 +36,7 @@
     /// </summary>
     public static class Printer
     {
-        public static void Print<TProducts>(this TProducts[] products) where TProducts : Product// Вывести на экран список продуктов
+        public static void Print<TProduct>(this TProduct[] products) where TProduct : Product// Вывести на экран список продуктов
         {
             foreach (var product in products)
             {
@@ -43,20 +44,15 @@
             }
         }
 
-        //public static void Print(this List<Product> products)// Вывести на экран список заказанных продуктов
-        //{
-        //    var printOrderProd = new List<Product>();
-
-        //    foreach (var product in products)
-        //    {
-        //        for (int i = 0; i > products.Count; i++)
-        //        {
-
-        //        }
-
-        //        Console.WriteLine($"{product.ID} {product.Name}");
-        //    }
-        //}
+        public static void PrintOrderedProducts<TProduct>(this TProduct[] orderdProducts) where TProduct : Product// Вывести на экран список заказанных продуктов
+        {
+            var products = orderdProducts.GroupBy(p => p.ID);
+            
+            foreach (var product in products)
+            {
+                Console.WriteLine($"{product.Select(p => p.Name).First()} {product.Count()}");
+            }
+        }
 
         public static void Print(this string[] addresses)// Вевести на экран адреса доставки
         {
@@ -101,7 +97,7 @@
                 $"Комментарий: {order.Description}\n" +
                 $"Ваши покупки:");
 
-            order.OrderedProducts.Print();
+            order.OrderedProducts.PrintOrderedProducts();
         }
     }
 
@@ -280,6 +276,7 @@
                     openOrder = false;
                 }
             }
+
             return orderedProducts.ToArray();
         }
     }
@@ -287,7 +284,6 @@
     /// <summary>
     /// Классы пользователей
     /// </summary>
-
     public abstract class User
     {
         private int id;
@@ -424,7 +420,6 @@
     /// <summary>
     /// Класс заказа
     /// </summary>
-    /// <typeparam name="TDelivery"></typeparam>
     public class Order<TDelivery> where TDelivery : Delivery
     {
         public TDelivery Delivery;
@@ -507,7 +502,6 @@
     /// <summary>
     /// Классы продуктов
     /// </summary>
-
     public abstract class Product
     {
         private int id;
@@ -547,7 +541,6 @@
             Name = name;
         }
     }
-
 }
 
 
