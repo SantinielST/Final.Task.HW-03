@@ -28,7 +28,6 @@
                 courier.OrdersCurrent[0] = customer.OrdersCurrent[0];
 
                 courier.MoveOrder(courier.OrdersCurrent[0]);
-                Console.WriteLine("Заказ доставлен!");
             }
             else
             {
@@ -36,12 +35,7 @@
                 driver.OrdersCurrent[0] = customer.OrdersCurrent[0];
 
                 driver.MoveOrder(driver.OrdersCurrent[0]);
-
-                Console.WriteLine();
-                Console.WriteLine("Заказ доставлен!");
             }
-
-            Console.ReadKey();
         }
     }
     /// <summary>
@@ -385,6 +379,8 @@
         {
             OrdersFinished = new Order<Delivery>[OrdersCurrent.Length];
 
+            Console.WriteLine("Заказ доставлен!");
+
             return OrdersFinished[0] = AddOrderFinal();
         }
 
@@ -407,6 +403,8 @@
         public override Order<Delivery> MoveOrder(Order<Delivery> order)
         {
             OrdersFinished = new Order<Delivery>[OrdersCurrent.Length];
+
+            Console.WriteLine("Заказ доставлен!");
 
             return OrdersFinished[0] = AddOrderFinal();
         }
