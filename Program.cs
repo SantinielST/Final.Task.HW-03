@@ -70,7 +70,7 @@
             }
         }
 
-        public static void Print(this string[] addresses)// Вевести на экран адреса доставки
+        public static void Print(this string[] addresses)// Вывести на экран адреса доставки
         {
             for (int i = 0; i < addresses.Length; i++)
             {
@@ -106,7 +106,7 @@
             }
         }
 
-        public static void Print(this Order<Delivery> order)
+        public static void Print(this Order<Delivery> order)// Вывод на экран итоговой информации по заказу
         {
             Console.WriteLine($"Ваш заказ №{order.Number}\n" +
                 $"Доставка по адресу: {order.Delivery.Address}\n" +
@@ -122,7 +122,7 @@
     /// </summary>
     public static class Checker
     {
-        public static int InsertInt()
+        public static int InsertInt()// Метод проверки ввода на число
         {
             if (int.TryParse(Console.ReadLine(), out int result))
             {
@@ -133,7 +133,7 @@
             return InsertInt();
         }
 
-        public static string InsertString()
+        public static string InsertString() // Метод проверки на пустую строку
         {
             var insert = Console.ReadLine();
             if (!string.IsNullOrWhiteSpace(insert))
@@ -145,7 +145,7 @@
             return InsertString();
         }
 
-        public static bool ContinueOrder()
+        public static bool ContinueOrder() // Метод проверки ответа для продолжения/завершения заказа
         {
             var answer = Console.ReadLine().ToLower();
             var validAnswers = new string[] { "да", "нет" };
@@ -164,7 +164,7 @@
             }
         }
 
-        public static int CheckIndexRange(string[] addresses)
+        public static int CheckIndexRange(string[] addresses)// Метод проверки индекса
         {
             if (int.TryParse(Console.ReadLine(), out int result))
             {
@@ -229,7 +229,7 @@
             this.customerId = customerId;
         }
 
-        public Order<Delivery> CreateOrder<TOrder>(string[] addressesPickPoint, string[] adressesShop, Product[] products) where TOrder : Order<Delivery>
+        public Order<Delivery> CreateOrder<TOrder>(string[] addressesPickPoint, string[] adressesShop, Product[] products) where TOrder : Order<Delivery> // Метод создания заказа
         {
             productsStore = products;
 
@@ -247,7 +247,7 @@
             return order;
         }
 
-        private Product[] AddProduct<TProduct>(Product[] products) where TProduct : Product // Метод добавления товаров в корзину
+        private Product[] AddProduct<TProduct>(Product[] products) where TProduct : Product // Метод добавления товара в корзину
         {
             productsStore = products;
 
@@ -329,8 +329,6 @@
 
         public override Order<Delivery>[] OrdersCurrent { get; set; }
         public override Order<Delivery>[] OrdersFinished { get; set; }
-
-        private bool orderDone;
 
         public Customer(int id, string name) : base(id, name)
         {
